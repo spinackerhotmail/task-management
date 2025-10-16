@@ -1,0 +1,40 @@
+﻿using MediatR;
+using Microsoft.Extensions.Logging;
+using System.Diagnostics;
+
+namespace TaskManagementService.CommonLib.Behaviours
+{
+    public class PerformanceBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> where TRequest : notnull
+    {
+        private readonly Stopwatch timer;
+        private readonly ILogger<TRequest> logger;
+
+        public PerformanceBehaviour(
+            ILogger<TRequest> logger)
+        {
+            timer = new Stopwatch();
+            this.logger = logger;
+        }
+
+        public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
+        {
+            timer.Start();
+
+            var response = await next();
+
+            timer.Stop();
+
+            var elapsedMilliseconds = timer.ElapsedMilliseconds;
+
+            if (elapsedMilliseconds > 1500)
+            {
+                var requestName = typeof(TRequest).Name;
+
+                logger.LogWarning("Long Running Request: {Name} ({ElapsedMilliseconds} milliseconds)",
+                    requestName, elapsedMilliseconds);
+            }
+
+            return response;
+        }
+    }
+}

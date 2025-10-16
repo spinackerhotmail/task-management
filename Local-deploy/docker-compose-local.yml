@@ -1,7 +1,7 @@
 ﻿services:
   db:
     image: postgres
-    container_name: shop24_pgdb
+    container_name: tms_pgdb
     restart: always
     ports:
       - "54320:5432"
